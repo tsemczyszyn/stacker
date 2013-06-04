@@ -63,6 +63,10 @@ class Stacker:
     taskwin.border(0)
     taskwin.addstr(0, 1, "Tasks")
     taskwin.refresh()
+    taskdims = taskwin.getmaxyx()
+
+    #Stackwin
+    stackwin = taskwin.derwin(taskdims[0]-2, taskdims[1]-2, 1, 1)
 
     #Initialize Description Window
     description = mainscr.subwin(dims[0]-4, (dims[1]/2)-10, 2, (dims[1]/2)+9)
@@ -82,22 +86,36 @@ class Stacker:
 
         stack.append(newTask)
 
+    def closeTask():
+
+        global stack
+        if (len(stack) != 0):
+            stack[len(stack)-2].activate()
+            stack.pop()
 
     #Need a main loop here
     #Loop redraw the screen and check for input
 
     while (1):
+
         key = mainscr.getkey()
+
         if (key == 'n'):
             addTask()
+
+        elif (key == 'c'):
+            closeTask()
+
         elif (key == 'x'):
             curses.endwin()
             sys.exit(0)
-        key = ''
-        
-        taskwin.move(1, 1)
-        for position, task in enumerate(stack):
-            taskwin.addstr(task.title + "\t" + str(task.taskID.hexdigest()) + "\t" + str(task.active))
-            taskwin.move(position+2, 1)
 
-        taskwin.refresh()
+        key = ''
+        stackwin.move(0,0)
+        for position, task in enumerate(stack):
+            stackwin.addstr(task.title + "\t" + str(task.taskID.hexdigest()) + "\t" + str(task.active))
+            stackwin.clrtoeol()
+            stackwin.move(position+1, 0)
+
+        stackwin.clrtobot()
+        stackwin.refresh()
