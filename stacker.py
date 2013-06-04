@@ -5,6 +5,9 @@ import curses
 import hashlib
 import sys
 
+
+stack = []
+
 class Task:
 
     def __init__(self):
@@ -21,19 +24,16 @@ class Task:
 
         self.taskID.update(str(self.creation))
 
-    def activate():
+    def activate(self):
         self.timer_start = time.time()
         self.active = True
 
-    def deactivate():
+    def deactivate(self):
         self.timer_stop = time.time()
         self.elapsed = self.timer_stop - self.timer_start
         self.active = False
 
 class Stacker:
-
-    stack = []
-
 
     #Create the window for curses stuff
     mainscr = curses.initscr()
@@ -72,14 +72,24 @@ class Stacker:
     curses.curs_set(0)
     curses.noecho()
 
+    def addTask():
+
+        global stack
+        newTask = Task()
+        newTask.activate()
+        if (len(stack) != 0):
+            stack[len(stack)-1].deactivate()
+
+        stack.append(newTask)
+
+
     #Need a main loop here
     #Loop redraw the screen and check for input
 
     while (1):
         key = mainscr.getkey()
         if (key == 'n'):
-            newTask = Task()
-            stack.append(newTask)
+            addTask()
         elif (key == 'x'):
             curses.endwin()
             sys.exit(0)
@@ -87,7 +97,7 @@ class Stacker:
         
         taskwin.move(1, 1)
         for position, task in enumerate(stack):
-            taskwin.addstr(task.title + "\t" + str(task.taskID.hexdigest()))
+            taskwin.addstr(task.title + "\t" + str(task.taskID.hexdigest()) + "\t" + str(task.active))
             taskwin.move(position+2, 1)
 
         taskwin.refresh()
