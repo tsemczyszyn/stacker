@@ -32,8 +32,16 @@ class Task:
         self.elapsed += self.timer_stop - self.timer_start
         self.active = False
 
+    def draw(self):
+        if (self.active):
+            drawText = " " + self.title + "\t" + str(self.selected) + "\t" + str(datetime.timedelta(seconds=self.elapsed+(time.time() - self.timer_start)))
+        else:
+            drawText = self.title + "\t" + str(self.selected) + "\t" + str(datetime.timedelta(seconds=self.elapsed))
+
+        return drawText
 
 stack = []
+select_pointer = 0
 render = True
 
 #Create the window for curses stuff
@@ -99,10 +107,10 @@ def redrawStack():
 
     for position, task in enumerate(stack):
 
-        if (task.active == True):
-            stackwin.addstr("\t" + task.title + "\t" + str(task.taskID.hexdigest()) + "\t" + str(datetime.timedelta(seconds=task.elapsed+(time.time() - task.timer_start))))
+        if (task.selected):
+            stackwin.addstr(task.draw(), curses.A_REVERSE)
         else:
-            stackwin.addstr(task.title + "\t" + str(task.taskID.hexdigest()) + "\t" + str(task.elapsed))
+            stackwin.addstr(task.draw())
 
         stackwin.clrtoeol()
         stackwin.move(position+1, 0)
@@ -114,6 +122,12 @@ def threadedRedraw():
     while (render):
         redrawStack()
         time.sleep(0.25)
+
+def exitApp():
+    render = False
+    curses.endwin()
+    sys.exit(0)
+
 
 thread.start_new_thread(threadedRedraw, ())
 
@@ -130,7 +144,18 @@ while (1):
         redrawStack()
 
     elif (key == 'x'):
-        render = False
-        curses.endwin()
-        sys.exit(0)
+        exitApp()
 
+    elif (key == 'j'):
+        if (select_pointer < (len(stack)-1)):
+            select_pointer += 1
+            stack[select_pointer].selected = True
+            stack[select_pointer-1].selected = False
+            redrawStack()
+
+    elif (key == 'k'):
+        if (select_pointer != 0):
+            select_pointer -= 1
+            stack[select_pointer].selected = True
+            stack[select_pointer+1].selected = False
+            redrawStack()
