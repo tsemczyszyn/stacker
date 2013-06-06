@@ -40,6 +40,7 @@ class Task:
 
         return drawText
 
+#Runtime state variable
 stack = []
 select_pointer = 0
 render = True
@@ -85,7 +86,6 @@ description.refresh()
 curses.curs_set(0)
 curses.noecho()
 
-
 def addTask():
 
     newTask = Task()
@@ -94,6 +94,9 @@ def addTask():
         stack[len(stack)-1].deactivate()
 
     stack.append(newTask)
+
+    if (len(stack) == 1):
+        stack[0].selected = True
 
 def closeTask():
 
