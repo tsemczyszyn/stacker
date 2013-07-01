@@ -40,6 +40,56 @@ class Task:
 
         return drawText
 
+#----------Functions--------------------------------------------------------
+
+def addTask():
+
+    newTask = Task()
+    newTask.activate()
+
+    #Deactivate the last item in the stack before adding a new active task
+    if (len(stack) != 0):
+        stack[len(stack)-1].deactivate()
+
+    if (len(stack) <= taskdims[0]-2):
+        stack.append(newTask)
+
+    if (len(stack) == 1):
+        stack[0].selected = True
+
+def closeTask():
+
+    if (len(stack) != 0):
+        stack[len(stack)-2].activate()
+        stack.pop()
+
+def redrawStack():
+
+    stackwin.move(0,0)
+
+    for position, task in enumerate(stack):
+
+        if (task.selected):
+            stackwin.addstr(task.draw(), curses.A_REVERSE)
+        else:
+            stackwin.addstr(task.draw())
+
+        stackwin.clrtoeol()
+        stackwin.move(position+1, 0)
+
+    stackwin.clrtobot()
+    stackwin.refresh()
+
+def threadedRedraw():
+    while (render):
+        redrawStack()
+        time.sleep(0.25)
+
+def exitApp():
+    render = False
+    curses.endwin()
+    sys.exit(0)
+
 #Runtime state variable
 stack = []
 select_pointer = 0
@@ -86,52 +136,6 @@ description.refresh()
 curses.curs_set(0)
 curses.noecho()
 
-def addTask():
-
-    newTask = Task()
-    newTask.activate()
-    if (len(stack) != 0):
-        stack[len(stack)-1].deactivate()
-
-    stack.append(newTask)
-
-    if (len(stack) == 1):
-        stack[0].selected = True
-
-def closeTask():
-
-    if (len(stack) != 0):
-        stack[len(stack)-2].activate()
-        stack.pop()
-
-def redrawStack():
-
-    stackwin.move(0,0)
-
-    for position, task in enumerate(stack):
-
-        if (task.selected):
-            stackwin.addstr(task.draw(), curses.A_REVERSE)
-        else:
-            stackwin.addstr(task.draw())
-
-        stackwin.clrtoeol()
-        stackwin.move(position+1, 0)
-
-    stackwin.clrtobot()
-    stackwin.refresh()
-
-def threadedRedraw():
-    while (render):
-        redrawStack()
-        time.sleep(0.25)
-
-def exitApp():
-    render = False
-    curses.endwin()
-    sys.exit(0)
-
-
 thread.start_new_thread(threadedRedraw, ())
 
 while (1):
@@ -162,3 +166,5 @@ while (1):
             stack[select_pointer].selected = True
             stack[select_pointer+1].selected = False
             redrawStack()
+
+
