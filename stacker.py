@@ -32,17 +32,30 @@ class Task:
         self.elapsed += self.timer_stop - self.timer_start
         self.active = False
 
+    def format_timedelta(self, tdelta):
+
+        seconds = tdelta.seconds
+        hours, remainder = divmod(seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return '%02d:%02d:%02d' % (hours, minutes, seconds)
+
     def draw(self):
         if (self.active):
-            drawText = " " + self.title + "\t" + str(self.selected) + "\t" + str(datetime.timedelta(seconds=self.elapsed+(time.time() - self.timer_start)))
+            dt = datetime.timedelta(seconds=self.elapsed+(time.time() - self.timer_start))
+            drawText = " " + self.title + "\t" + str(self.selected) + "\t" + self.format_timedelta(dt) 
         else:
-            drawText = self.title + "\t" + str(self.selected) + "\t" + str(datetime.timedelta(seconds=self.elapsed))
+            dt = datetime.timedelta(seconds=self.elapsed)
+            drawText = self.title + "\t" + str(self.selected) + "\t" + self.format_timedelta(dt)
 
         return drawText
 
 #----------Functions--------------------------------------------------------
 
 def addTask():
+
+    #Never add more tasks than can fit on the current screen
+    if (len(stack) > taskdims[0]-4):
+        return
 
     newTask = Task()
     newTask.activate()
@@ -51,8 +64,8 @@ def addTask():
     if (len(stack) != 0):
         stack[len(stack)-1].deactivate()
 
-    if (len(stack) <= taskdims[0]-2):
-        stack.append(newTask)
+    
+    stack.append(newTask)
 
     if (len(stack) == 1):
         stack[0].selected = True
@@ -80,9 +93,15 @@ def redrawStack():
     stackwin.clrtobot()
     stackwin.refresh()
 
+def redrawDescrip():
+    #description.addstr("Hey look here!")
+    description.refresh()
+
+
 def threadedRedraw():
     while (render):
         redrawStack()
+        redrawDescrip()
         time.sleep(0.25)
 
 def exitApp():
@@ -161,6 +180,9 @@ while (1):
             redrawStack()
 
     elif (key == 'k'):
+        if (select_pointer > len(stack)-1):
+            select_pointer = len(stack)-1
+
         if (select_pointer != 0):
             select_pointer -= 1
             stack[select_pointer].selected = True
