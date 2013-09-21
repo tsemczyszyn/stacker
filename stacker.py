@@ -24,10 +24,12 @@ class Task:
         self.taskID.update(str(self.creation))
 
     def activate(self):
+
         self.timer_start = time.time()
         self.active = True
 
     def deactivate(self):
+
         self.timer_stop = time.time()
         self.elapsed += self.timer_stop - self.timer_start
         self.active = False
@@ -37,6 +39,7 @@ class Task:
         seconds = tdelta.seconds
         hours, remainder = divmod(seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
+
         return '%02d:%02d:%02d' % (hours, minutes, seconds)
 
     def draw(self):
