@@ -3,9 +3,13 @@
 import time
 import datetime
 import curses
+from curses import textpad
 import hashlib
 import sys
 import thread
+
+#TODO: Create separate classes for the subwindows so they can be managed more cleanly and initialized
+#TODO: Input needs to be handled better to allow tabbing between windows for editing tasks
 
 class Task:
 
@@ -22,6 +26,12 @@ class Task:
         self.timer_stop = 0
 
         self.taskID.update(str(self.creation))
+
+        #More task information
+        
+        self.project = None
+        self.tags = set()
+        self.comments = None
 
     def activate(self):
 
@@ -97,8 +107,19 @@ def redrawStack():
     stackwin.refresh()
 
 def redrawDescrip():
-    #description.addstr("Hey look here!")
-    description.refresh()
+    desc.move(0,0)
+
+    for task in stack:
+        if task.selected:
+            dt = datetime.datetime.fromtimestamp(task.creation)
+            textpad.Textbox(desc) 
+            desc.addstr("Title: \t" + task.title)
+            desc.move(1,0)
+            desc.addstr("Creation: " + str(dt))
+            break
+
+    desc.clrtoeol()
+    desc.refresh()
 
 
 def threadedRedraw():
@@ -150,11 +171,17 @@ taskdims = taskwin.getmaxyx()
 #Stackwin
 stackwin = taskwin.derwin(taskdims[0]-2, taskdims[1]-2, 1, 1)
 
+
 #Initialize Description Window
 description = mainscr.subwin(dims[0]-4, (dims[1]/2)-10, 2, (dims[1]/2)+9)
 description.border(0)
 description.addstr(0, 1, "Description")
 description.refresh()
+descdims = description.getmaxyx()
+
+#Description panel
+desc = description.derwin(descdims[0]-2, descdims[1]-2, 1, 1)
+
 curses.curs_set(0)
 curses.noecho()
 
